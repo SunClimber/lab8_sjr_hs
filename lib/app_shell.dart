@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'brewery_tab.dart';
-import 'pokemon_tab.dart'; 
+import 'pokemon_tab.dart';
 
 // this widget holds the main scaffold and bottom nav bar
 class AppShell extends StatefulWidget {
@@ -13,8 +13,13 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0; // tracks the active tab
 
-  // key for brewery tab
-  final GlobalKey<BreweryTabState> _breweryTabKey = GlobalKey<BreweryTabState>();
+  // key for brewery tab 
+  final GlobalKey<BreweryTabState> _breweryTabKey =
+      GlobalKey<BreweryTabState>();
+
+  // key for pokemon tab 
+  final GlobalKey<PokemonTabState> _pokemonTabKey =
+      GlobalKey<PokemonTabState>();
 
   // the list for our two tab pages
   late final List<Widget> _tabs;
@@ -25,7 +30,7 @@ class _AppShellState extends State<AppShell> {
     // initialize the tabs list
     _tabs = [
       BreweryTab(key: _breweryTabKey), // tab 0
-      const PokemonTab(), // tab 1
+      PokemonTab(key: _pokemonTabKey), // tab 1 (key passed)
     ];
   }
 
@@ -57,18 +62,33 @@ class _AppShellState extends State<AppShell> {
     );
   }
 
+  /// creates the appbar for pokemon tab (index 1)
+  AppBar _buildPokemonAppBar() {
+    return AppBar(
+      title: const Text('pokemon search'),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.arrow_forward),
+          tooltip: 'fetch pokemon',
+          onPressed: () => _pokemonTabKey.currentState?.fetchData(),
+        ),
+        IconButton(
+          icon: const Icon(Icons.clear),
+          tooltip: 'clear pokemon',
+          onPressed: () => _pokemonTabKey.currentState?.clearData(),
+        ),
+      ],
+    );
+  }
+
   /// this method dynamically picks the right app bar
   AppBar _buildAppBar() {
     switch (_selectedIndex) {
       case 0:
         return _buildBreweryAppBar();
       case 1:
-        // pokemon api app bar should go here
-        return AppBar(
-          title: const Text('pokemon search'),
-        );
+        return _buildPokemonAppBar();
       default:
-        // should never hit this.
         return AppBar(title: const Text('error'));
     }
   }
