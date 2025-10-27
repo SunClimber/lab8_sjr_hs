@@ -35,13 +35,22 @@ class PokemonTabState extends State<PokemonTab> {
     }
   }
 
-  void _handleFetch() {
-    final name = _controller.text;
-    setState(() {
-      _pokemonFuture = fetchPokemon(name);
-      _pokemon = null;
-    });
+ void _handleFetch() {
+  final name = _controller.text.trim();
+  if (name.isEmpty) {
+    // user-friendly feedback instead of throwing
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please enter a Pokémon name or ID.')),
+    );
+    return;
   }
+
+  setState(() {
+    _pokemonFuture = fetchPokemon(name);
+    _pokemon = null;
+  });
+}
+
 
   void _handleClear() {
     setState(() {
