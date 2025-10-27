@@ -20,7 +20,6 @@ class PokemonTabState extends State<PokemonTab> {
 
   Future<Pokemon?> fetchPokemon(String nameOrId) async {
     final query = nameOrId.toLowerCase().trim();
-    if (query.isEmpty) throw Exception('Please enter a Pokémon name or ID.');
 
     final uri = Uri.https('pokeapi.co', '/api/v2/pokemon/$query');
     final res = await http.get(uri);
@@ -29,28 +28,30 @@ class PokemonTabState extends State<PokemonTab> {
       final json = jsonDecode(res.body);
       return Pokemon.fromJson(json as Map<String, dynamic>);
     } else if (res.statusCode == 404) {
-      throw Exception('Pokémon not found!');
+      return null;
+      // throw Exception('Pokemon not found!');
     } else {
-      throw Exception('Failed to load Pokémon data (Error ${res.statusCode})');
+      // same thing here, just return null for any other error
+      return null;
+      // throw Exception('Failed to load Pokemon data (Error ${res.statusCode})');
     }
   }
 
- void _handleFetch() {
-  final name = _controller.text.trim();
-  if (name.isEmpty) {
-    // user-friendly feedback instead of throwing
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Please enter a Pokémon name or ID.')),
-    );
-    return;
+  void _handleFetch() {
+    final name = _controller.text.trim();
+    if (name.isEmpty) {
+      // user-friendly feedback instead of throwing
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a Pokemon name or ID.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _pokemonFuture = fetchPokemon(name);
+      _pokemon = null;
+    });
   }
-
-  setState(() {
-    _pokemonFuture = fetchPokemon(name);
-    _pokemon = null;
-  });
-}
-
 
   void _handleClear() {
     setState(() {
@@ -73,12 +74,12 @@ class PokemonTabState extends State<PokemonTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ Only TextField remains (title and buttons removed)
+          // Only TextField remains (title and buttons removed)
           TextField(
             controller: _controller,
             decoration: InputDecoration(
               border: const OutlineInputBorder(),
-              labelText: 'Enter Pokémon name or ID',
+              labelText: 'Enter Pokemon name or ID',
               hintText: 'e.g., pikachu or 25',
               suffixIcon: IconButton(
                 icon: const Icon(Icons.search),
@@ -98,7 +99,7 @@ class PokemonTabState extends State<PokemonTab> {
                 ? (_pokemon == null
                     ? const Center(
                         child: Text(
-                          'Enter a Pokémon name or ID and press the arrow in the AppBar to fetch.',
+                          'Enter a Pokemon name or ID and press the arrow in the AppBar to fetch.',
                           textAlign: TextAlign.center,
                         ),
                       )
@@ -109,6 +110,7 @@ class PokemonTabState extends State<PokemonTab> {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: Text('Loading...'));
                       } else if (snapshot.hasError) {
+                        // this will only catch *real* errors now, like no internet
                         return Center(
                           child: Text(
                             'Error: ${snapshot.error}',
@@ -117,7 +119,9 @@ class PokemonTabState extends State<PokemonTab> {
                           ),
                         );
                       } else if (!snapshot.hasData || snapshot.data == null) {
-                        return const Center(child: Text('No Pokémon found.'));
+                        // this part now catches the 'null' we returned
+                        // and shows 'no pokemon found'
+                        return const Center(child: Text('No PokÃ©mon found.'));
                       } else {
                         _pokemon = snapshot.data!;
                         return _buildPokemonInfo(_pokemon!);
@@ -137,7 +141,8 @@ class PokemonTabState extends State<PokemonTab> {
         Card(
           elevation: 3,
           margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(14.0),
             child: Column(
@@ -145,7 +150,8 @@ class PokemonTabState extends State<PokemonTab> {
               children: [
                 Text(
                   pokemon.name.toUpperCase(),
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 if (pokemon.imageUrl.isNotEmpty)
@@ -153,7 +159,8 @@ class PokemonTabState extends State<PokemonTab> {
                     pokemon.imageUrl,
                     height: 120,
                     fit: BoxFit.contain,
-                    errorBuilder: (c, e, s) => const Icon(Icons.broken_image, size: 80),
+                    errorBuilder: (c, e, s) =>
+                        const Icon(Icons.broken_image, size: 80),
                   ),
                 const SizedBox(height: 12),
                 Wrap(
@@ -231,7 +238,8 @@ class Pokemon {
       name: json['name'] as String,
       height: json['height'] as int,
       weight: json['weight'] as int,
-      imageUrl: (json['sprites'] != null && json['sprites']['front_default'] != null)
+      imageUrl: (json['sprites'] != null &&
+              json['sprites']['front_default'] != null)
           ? json['sprites']['front_default'] as String
           : '',
       types: typesList,
