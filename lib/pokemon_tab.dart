@@ -121,7 +121,7 @@ class PokemonTabState extends State<PokemonTab> {
                       } else if (!snapshot.hasData || snapshot.data == null) {
                         // this part now catches the 'null' we returned
                         // and shows 'no pokemon found'
-                        return const Center(child: Text('No PokÃ©mon found.'));
+                        return const Center(child: Text('No Pokemon found.'));
                       } else {
                         _pokemon = snapshot.data!;
                         return _buildPokemonInfo(_pokemon!);
